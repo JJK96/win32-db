@@ -9,3 +9,4 @@ Currently, I use `mingw` headers and libraries to obtain the data. But with mini
 ## Dependencies
 
 - mingw-w64
+- ripgrep (rg)
