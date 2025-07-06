@@ -17,8 +17,8 @@ class Definition:
         try:
             self.parse()
         except Exception as e:
-            logging.error(f"Could not parse: {self.definition_str}")
-            raise
+            logging.debug(f"Could not parse: {self.definition_str}")
+            raise InvalidDefinition(e)
 
     def is_valid(self):
         if "virtual" in self.definition_str:
@@ -60,15 +60,26 @@ def get_symbols_for_dll(dll):
         yield line
     
 def get_definitions_for_dll(dll):
-    cmd = ["rg", "-IN", "WINAPI", mingw_headers_path]
     regex = r'\b\(' + '|'.join(get_symbols_for_dll(dll)) + r'\)\b'
+    cmd = ["rg", "-IN", regex, mingw_headers_path]
     p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    for line in p.stdout.decode().splitlines():
-        if re.search(regex, line):
-            try:
-                yield Definition(line.strip(), dll=dll)
-            except InvalidDefinition:
-                continue
+    for line in p.stdout.splitlines():
+        try:
+            line = line.decode().strip()
+        except UnicodeDecodeError:
+            logging.debug("Could not decode ", str(line))
+            continue
+        if "__mingw_" in line:
+            continue
+        if line.startswith("#"):
+            continue
+        if line.startswith("/*"):
+            continue
+        try:
+            yield Definition(line, dll=dll)
+        except InvalidDefinition:
+            continue
+        
 
 def create_json(dll):
     output = {}
