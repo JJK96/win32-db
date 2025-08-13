@@ -48,11 +48,9 @@ def dll_to_lib(dll):
 
 def get_symbols_for_dll(dll):
     lib = Path(mingw_lib_path) / dll_to_lib(dll)
-    cmd = [objdump, "-t", lib]
+    cmd = [objdump, "-t", lib, "-j.text"]
     p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     for line in p.stdout.decode().splitlines():
-        if not re.search(r"\(sec +1\)", line):
-            continue
         if not re.search(r"\(scl +2\)", line):
             continue
         symbol = line[67:]
@@ -87,7 +85,10 @@ def get_definitions_for_dll(dll):
 def create_json(dll):
     output = {}
     for d in get_definitions_for_dll(dll):
+        if not re.match(r'^[A-Za-z0-9_]+$', d.function_name):
+            continue
         output[d.function_name] = d.definition_str
+    output = {k:v for k,v in sorted(output.items(), key=lambda x:x[0])}
     with open(dll + ".json", 'w') as f:
         json.dump(output, f)
 
