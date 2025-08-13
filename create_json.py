@@ -51,13 +51,16 @@ def get_symbols_for_dll(dll):
     cmd = [objdump, "-t", lib]
     p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     for line in p.stdout.decode().splitlines():
-        # Cut to the symbol names
-        line = line[67:]
-        if not line or re.search(r"^[._\d]|\.c?$", line):
+        if not re.search(r"\(sec +1\)", line):
             continue
-        if not re.match(r'^[A-Za-z0-9_]+$', line):
+        if not re.search(r"\(scl +2\)", line):
             continue
-        yield line
+        symbol = line[67:]
+        if symbol[0] == '_':
+            continue
+        if not re.match(r'^[A-Za-z0-9_]+$', symbol):
+            continue
+        yield symbol
     
 def get_definitions_for_dll(dll):
     regex = r'\b\(' + '|'.join(get_symbols_for_dll(dll)) + r'\)\b'
