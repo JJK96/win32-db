@@ -76,6 +76,8 @@ def get_definitions_for_dll(dll):
             continue
         if line.startswith("/*"):
             continue
+        if "=" in line:
+            continue
         try:
             yield Definition(line, dll=dll)
         except InvalidDefinition:
