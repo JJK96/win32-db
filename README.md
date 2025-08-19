@@ -2,6 +2,8 @@
 
 This program can generate a database of Windows API function definitions/signatures based on C header files. This can be useful for compiling in situations where dynamic linking is not possible in the usual way.
 
+You might want to use https://github.com/marlersoft/win32json instead, which provides the same data (more accurately).
+
 ## Method
 
 Currently, I use `mingw` headers and libraries to obtain the data. But with minimal changes this could be changed to the Windows SDK provided by Microsoft if necessary.
